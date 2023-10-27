@@ -1,0 +1,31 @@
+version: '3'
+
+services:
+  miracle_api:
+    build:
+      context: .
+      dockerfile: ./compose/Dockerfile
+    image: miracle_api
+    container_name: miracle_api
+    depends_on:
+      - miracle_mysql
+    volumes:
+      - .:/src
+    env_file:
+      - ./.env
+    ports:
+      - "8000:8000"
+    command: python manage.py runserver 0.0.0.0:8000
+  
+  miracle_mysql:
+    image: mysql:8.0
+    container_name: miracle_mysql
+    env_file:
+      - .env
+    ports:
+      - "3306:3306"
+    volumes:
+      - miracle_mysql_data:/var/lib/mysql
+
+volumes:
+  miracle_mysql_data:

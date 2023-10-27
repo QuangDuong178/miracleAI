@@ -1,0 +1,34 @@
+.idea/
+venv/
+cmake-build-debug/
+__pycache__
+*.pyc
+*.pyo
+.installed.cfg
+bin
+develop-eggs
+downloads
+eggs
+parts
+src/*.egg-info
+.DS_Store
+#lib
+lib64
+logs/*
+*sqlite3
+media/
+.env
+venv2
+venv
+.DS_Store
+
+# Translations
+*.mo
+*.pot
+
+# Django stuff:
+staticfiles/
+
+# Logs
+logs
+*.log

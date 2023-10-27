@@ -1,0 +1,40 @@
+version: '3'
+
+services:
+  miracle_api:
+    build:
+      context: .
+      dockerfile: ./compose/local/Dockerfile
+    image: miracle_api
+    container_name: miracle_api
+    depends_on:
+      - miracle_mysql
+    volumes:
+      - .:/src
+    env_file:
+      - ./.env
+    ports:
+      - "8083:8000"
+    command: python manage.py runserver 0.0.0.0:8000
+    networks:
+      - miracle_backend
+
+  miracle_mysql:
+    image: mysql:8.0
+    container_name: miracle_mysql
+    command: "--default-authentication-plugin=mysql_native_password"
+    env_file:
+      - .env
+    ports:
+      - "3307:3306"
+    volumes:
+      - miracle_mysql_data:/var/lib/mysql
+    networks:
+      - miracle_backend
+
+networks:
+  miracle_backend:
+
+volumes:
+  miracle_mysql_data:
+  redis_data:

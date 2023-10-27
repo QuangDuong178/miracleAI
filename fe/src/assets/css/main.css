@@ -1,0 +1,50 @@
+@import 'base.css';
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html {
+    font-family: Noto Sans !important;
+}
+
+#app {
+    font-weight: normal;
+}
+
+body {
+    height: 100%;
+}
+
+a,
+.green {
+    text-decoration: none;
+    color: hsla(160, 100%, 37%, 1);
+    transition: 0.4s;
+}
+
+.h-100 {
+    height: 100% !important;
+}
+
+.button-select-yellow {
+    height: 35px !important;
+    flex-shrink: 0 !important;
+    border-radius: 6px !important;
+    background: #FFE500 !important;
+    color: #000 !important;
+    font-style: normal !important;
+    font-weight: 700 !important;
+    line-height: 19px !important;
+    padding: 9px 8px !important;
+    font-size: 14px;
+}
+
+.el-main, .el-header{
+    padding: 0!important;
+}
+
+.chat-text a {
+    font-size: 0.9rem;
+    color: blue;
+}

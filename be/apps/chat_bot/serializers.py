@@ -1,9 +1,9 @@
 from rest_framework import serializers
 
-from apps.chat_bot.models import MasterConversation
+from apps.chat_bot.models import Bot
 
 
-class MasterConversationSerializer(serializers.ModelSerializer):
+class BotSerializer(serializers.ModelSerializer):
     class Meta:
-        model = MasterConversation
-        fields = ("id", "name", "description", "avatar")
+        model = Bot
+        fields = ("storage_vector_name","vector_config_name")

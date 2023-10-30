@@ -26,7 +26,7 @@ def load_documents(file_url, file_name, document_id):
     return documents
 
 
-def regenerate_vector(master, file_url, file_name, document_id):
+def regenerate_vector(bot, file_url, file_name, document_id):
     embeddings = OpenAIEmbeddings(openai_api_base=settings.OPENAI_API_BASE,
                                   openai_api_version=settings.OPENAI_API_VERSION,
                                   openai_api_key=settings.OPENAI_API_KEY,

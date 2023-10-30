@@ -11,7 +11,7 @@ from langchain.chat_models import AzureChatOpenAI
 from langchain.memory import ConversationBufferMemory
 from langchain.retrievers import AzureCognitiveSearchRetriever
 
-from apps.chat_bot.models import ReferUrl, CustomDataFile
+from apps.chat_bot.models import  CustomDataFile
 from apps.utils.constants import MessageRole, CommonKey, ReferTypeEnum, DisplayReferType, MessageCommon
 
 
@@ -57,22 +57,22 @@ class SimpleConversationChat:
             elif message.get("role") == MessageRole.HUMAN.value:
                 self.memory.chat_memory.add_user_message(message.get("message"))
 
-    def generator(self, master, user_message):
+    def generator(self, bot, user_message):
         # g = ThreadedGenerator()
         # threading.Thread(target=self.llm_thread, args=(g, master, user_message)).start()
-        return self.llm_thread(master, user_message)
+        return self.llm_thread(bot, user_message)
 
-    def llm_thread(self, master, user_message):
+    def llm_thread(self, bot, user_message):
         final_message = []
         try:
 
             condense_template = """
-                次の会話とフォローアップの質問を考慮し、フォローアップの質問を独立した質問として言い換えます。
+                Consider the following conversation and follow-up questions, and rephrase the follow-up questions as stand-alone questions.
     
-                チャット履歴:
+                Chat history:
                 {chat_history}
-                フォローアップ入力：{question}
-                独立した質問:
+                Follow-up input：{question}
+                Independent question:
                 """
 
             condense_question_prompt = PromptTemplate(
@@ -80,15 +80,15 @@ class SimpleConversationChat:
                 input_variables=["chat_history", "question"]
             )
 
-            qa_prompt_message = master.prompt_message if master.prompt_message \
-                else "最後の質問に丁寧な日本語で答えるには、次の文脈を使用します。 文脈内のデータがない場合、または答えがわからない場合は、答えを考え出そうとせず、ただわからないと言ってください。"
+            qa_prompt_message = bot.prompt_message if bot.prompt_message \
+                else "To answer the last question in polite Vietnamese, use the following context: If you don't have data in context or don't know the answer, don't try to come up with an answer, just say you don't know."
 
-            qa_template = qa_prompt_message + """答えがわからない質問については、答えの最後に「NO」を追加する必要があります。
+            qa_template = qa_prompt_message + """
             {context}
             {chat_history}
 
-            質問：{question}
-            回答：
+            Question：{question}
+            Answer：
             """
 
             qa_prompt = PromptTemplate(
@@ -96,7 +96,7 @@ class SimpleConversationChat:
                 input_variables=["context", "question", "chat_history"]
             )
 
-            retriever = AzureCognitiveSearchRetriever(content_key="content", index_name=master.storage_vector_name,
+            retriever = AzureCognitiveSearchRetriever(content_key="content", index_name=bot.storage_vector_name,
                                                       api_key=settings.AZURE_COGNITIVE_SEARCH_API_KEY,
                                                       service_name=settings.AZURE_COGNITIVE_SEARCH_SERVICE_NAME,
                                                       top_k=5)
@@ -122,65 +122,7 @@ class SimpleConversationChat:
             )
             bot = conv({"question": user_message})
 
-            source_documents = []
-            for document in bot.get("source_documents"):
-                if document.metadata.get(CommonKey.METADATA.value):
-                    metadata = (json.loads(document.metadata.get(CommonKey.METADATA.value)))
-                    document_id = metadata.get(CommonKey.DOCUMENT_ID.value) if metadata.get(
-                        CommonKey.DOCUMENT_ID.value) else None
-                    if master.refer_type == ReferTypeEnum.DOCUMENT.value:
-                        data_file = CustomDataFile.objects.get(id=document_id)
-
-                        if data_file.display_refer_type == DisplayReferType.NO_DISPLAY.value:
-                            continue
-
-                        source_documents.append({
-                            CommonKey.SOURCE.value: metadata.get(CommonKey.SOURCE.value),
-                            "page": metadata.get(CommonKey.PAGE.value) if (metadata.get(
-                                CommonKey.PAGE.value) is not None and data_file.display_refer_type == DisplayReferType.FILE_WITH_PAGE.value) else None
-                        })
-                    elif master.refer_type == ReferTypeEnum.URL.value:
-                        refer_urls = ReferUrl.objects.filter(file_id=document_id).values_list("url", flat=True)
-                        source_documents.extend(refer_urls)
-
-            source_info = ''
             bot_answer = bot.get("answer")
-
-            if not source_documents:
-                final_message.append(MessageCommon.NO_ANSWER.value)
-            elif master.refer_type == ReferTypeEnum.DOCUMENT.value:
-
-                source_documents.sort(key=lambda doc: doc.get(CommonKey.SOURCE.value))
-                source_documents = [
-                    {filename: [
-                        str(data.get(CommonKey.PAGE.value)) if data.get(CommonKey.PAGE.value) is not None else None for
-                        data
-                        in document]} for
-                    filename, document in
-                    groupby(source_documents, key=lambda x: x.get(CommonKey.SOURCE.value))]
-
-                for document in source_documents:
-                    for filename, list_page in document.items():
-                        list_page = list(filter(lambda page: page is not None, list_page))
-                        if not list_page:
-                            source_info += "\n" + filename
-                        else:
-                            source_info += "\n" + f" {filename} - ページ番号: {', '.join(set(list_page))}"
-
-                if "NO" not in bot_answer and source_info:
-                    final_message.append(f"{bot_answer}\n")
-                    final_message.append(f"{MessageCommon.DOCUMENT.value}: {source_info}")
-
-                else:
-                    final_message.append(MessageCommon.NO_ANSWER.value)
-            elif master.refer_type == ReferTypeEnum.URL.value and source_documents:
-                source_documents = map(convert_to_link, set(source_documents))
-                source_info = "\n" + "\n".join(set(source_documents))
-
-                if "NO" not in bot_answer and source_info:
-                    final_message.append(f"{MessageCommon.DOCUMENT.value}: {source_info}")
-                else:
-                    final_message.append(MessageCommon.NO_ANSWER.value)
 
             logging.info(f"Answer message: {bot.get('answer')}")
             logging.info(f"Conversation History: {bot.get('chat_history')}")
@@ -198,12 +140,12 @@ def convert_to_link(item):
     return link_element
 
 
-def streaming_response(master, history_messages):
+def streaming_response(bot, history_messages):
     history = history_messages[:-1]
     human_message = history_messages[-1]
 
     chat = SimpleConversationChat(history)
     ai_message = ""
-    for chunk in chat.generator(master=master, user_message=human_message.get("message")):
+    for chunk in chat.generator(bot=bot, user_message=human_message.get("message")):
         ai_message += chunk
         yield chunk

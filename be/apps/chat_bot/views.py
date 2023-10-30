@@ -3,7 +3,7 @@ from rest_framework import permissions, status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from apps.chat_bot.models import MasterConversation
+from apps.chat_bot.models import Bot
 from apps.chat_bot.serializers import MasterConversationSerializer
 from apps.chat_bot.services import streaming_response
 from apps.core.exceptions import ResourceNotFoundException
@@ -14,15 +14,14 @@ class ChatbotView(APIView):
 
     def post(self, request, *args, **kwargs):
         data = request.data
-        master_id = data.get("masterId", 1)
         history_messages = data.get("history_messages", [])
 
         try:
-            master = MasterConversation.objects.get(id=master_id)
+            bot = Bot.objects.get(id=1)
         except MasterConversation.DoesNotExist:
             raise ResourceNotFoundException()
 
-        return StreamingHttpResponse(streaming_response(master=master, history_messages=history_messages),
+        return StreamingHttpResponse(streaming_response(master=bot, history_messages=history_messages),
                                      content_type="text/event-stream")
 
 

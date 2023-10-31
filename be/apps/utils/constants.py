@@ -23,13 +23,9 @@ class ReferTypeEnum(enum.Enum):
     URL = '2'
 
 
-class DisplayReferType(enum.Enum):
-    FILE_WITH_PAGE = '1'
-    FILE_ONLY = '2'
-    NO_DISPLAY = '3'
 
 
 class MessageCommon(enum.Enum):
     DOCUMENT = "出典"
     URL = "こちらについては、下記のURLを参照ください"
-    NO_ANSWER = "申し訳ありません。質問の内容に対する具体的な情報が見つかりませんでした。"
+    NO_ANSWER = "Have no answer for your question"

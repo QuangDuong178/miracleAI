@@ -1,7 +1,6 @@
 import json
 import logging
 import queue
-from itertools import groupby
 
 from django.conf import settings
 from langchain import PromptTemplate
@@ -11,8 +10,7 @@ from langchain.chat_models import AzureChatOpenAI
 from langchain.memory import ConversationBufferMemory
 from langchain.retrievers import AzureCognitiveSearchRetriever
 
-from apps.chat_bot.models import  CustomDataFile
-from apps.utils.constants import MessageRole, CommonKey, ReferTypeEnum, DisplayReferType, MessageCommon
+from apps.utils.constants import MessageRole, CommonKey, MessageCommon
 
 
 # conversation
@@ -63,7 +61,6 @@ class SimpleConversationChat:
         return self.llm_thread(bot, user_message)
 
     def llm_thread(self, bot, user_message):
-        final_message = []
         try:
 
             condense_template = """
@@ -122,17 +119,11 @@ class SimpleConversationChat:
             )
             bot = conv({"question": user_message})
 
-            bot_answer = bot.get("answer")
-
-            logging.info(f"Answer message: {bot.get('answer')}")
-            logging.info(f"Conversation History: {bot.get('chat_history')}")
+            return bot.get("answer")
 
         except Exception as e:
             logging.error(f"Can't return answer with error {e}")
-            final_message.append(MessageCommon.NO_ANSWER.value)
-
-        finally:
-            return "".join(final_message)
+            return MessageCommon.NO_ANSWER.value
 
 
 def convert_to_link(item):

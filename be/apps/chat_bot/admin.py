@@ -8,7 +8,7 @@ from langchain.embeddings import OpenAIEmbeddings
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain.vectorstores import AzureSearch
 
-from apps.chat_bot.models import CustomDataFile, MasterConversation, ReferUrl
+from apps.chat_bot.models import CustomDataFile, Bot
 from apps.utils.constants import CommonKey
 
 
@@ -51,7 +51,7 @@ def regenerate_vector(bot, file_url, file_name, document_id):
             type=SearchFieldDataType.Collection(SearchFieldDataType.Single),
             searchable=True,
             vector_search_dimensions=len(embedding_function("Text")),
-            vector_search_configuration=master.vector_config_name,
+            vector_search_configuration=bot.vector_config_name,
         ),
         SearchableField(
             name="metadata",
@@ -62,7 +62,7 @@ def regenerate_vector(bot, file_url, file_name, document_id):
     vector_store = AzureSearch(
         azure_search_endpoint=settings.AZURE_SEARCH_ENDPOINT,
         azure_search_key=settings.AZURE_COGNITIVE_SEARCH_API_KEY,
-        index_name=master.storage_vector_name,
+        index_name=bot.storage_vector_name,
         fields=fields,
         embedding_function=embeddings.embed_query,
     )
@@ -70,29 +70,19 @@ def regenerate_vector(bot, file_url, file_name, document_id):
     vector_store.add_documents(load_documents(file_url, file_name, document_id))
     print(f"gen done: {file_name}")
 
-
-class ReferUrlTabular(admin.TabularInline):
-    model = ReferUrl
-    extra = 1
-
-
 class CustomDataFileAdmin(admin.ModelAdmin):
-    list_filter = ["master"]
-
     def save_model(self, request, obj, form, change):
         file_name = obj.file.name
         super().save_model(request, obj, form, change)
 
         embed_vector_thread = threading.Thread(target=regenerate_vector, name="generate_vector",
-                                               args=(obj.master, obj.file.url, file_name, obj.id), daemon=True)
+                                               args=(obj.bot, obj.file.url, file_name, obj.id), daemon=True)
         embed_vector_thread.start()
 
 
-class MasterConversationAdmin(admin.ModelAdmin):
-    radio_fields = {'refer_type': admin.HORIZONTAL}
-    exclude = ["refer_type"]
+class BotAdmin(admin.ModelAdmin):
     pass
 
 
 admin.site.register(CustomDataFile, CustomDataFileAdmin)
-admin.site.register(MasterConversation, MasterConversationAdmin)
+admin.site.register(Bot, BotAdmin)

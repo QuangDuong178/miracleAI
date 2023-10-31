@@ -17,7 +17,6 @@ lib64
 logs/*
 *sqlite3
 media/
-.env
 venv2
 venv
 .DS_Store

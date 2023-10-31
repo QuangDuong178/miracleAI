@@ -21,8 +21,6 @@ def pdf_directory_path(instance, filename):
     return 'pdf/{0}/{1}'.format(instance.bot.storage_vector_name, filename)
 
 class CustomDataFile(TimeStampMixin):
-
-    bot = models.ForeignKey(Bot, on_delete=models.CASCADE)
     file = models.FileField(upload_to=pdf_directory_path,
                             validators=[FileExtensionValidator(allowed_extensions=["pdf"])])
 

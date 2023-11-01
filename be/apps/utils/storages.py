@@ -7,6 +7,7 @@ class AzureMediaStorage(AzureStorage):
     account_name = settings.AZURE_ACCOUNT_NAME
     account_key = settings.AZURE_ACCOUNT_KEY
     azure_container = settings.MEDIA_LOCATION
+    timeout = 300
     expiration_secs = None
 
 

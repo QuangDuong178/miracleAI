@@ -47,7 +47,7 @@ class CustomDataFile(TimeStampMixin):
     master = models.ForeignKey(MasterConversation, on_delete=models.CASCADE)
     description = models.CharField(max_length=128, blank=True, null=True)
     file = models.FileField(upload_to=pdf_directory_path,
-                            validators=[FileExtensionValidator(allowed_extensions=["pdf"])])
+                            validators=[FileExtensionValidator(allowed_extensions=["pdf","csv"])])
     display_refer_type = models.CharField(max_length=20, choices=DISPLAY_REFER_CHOICES, default=1)
 
     class Meta:

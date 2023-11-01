@@ -1,5 +1,7 @@
+import csv
 import threading
 
+from azure.search.documents import SearchClient
 from azure.search.documents.indexes.models import SimpleField, SearchFieldDataType, SearchableField, SearchField
 from django.conf import settings
 from django.contrib import admin
@@ -24,6 +26,25 @@ def load_documents(file_url, file_name, document_id):
         document.metadata[CommonKey.DOCUMENT_ID.value] = document_id
         document.metadata[CommonKey.PAGE.value] = int(document.metadata[CommonKey.PAGE.value]) + 1
     return documents
+
+
+def regenerate_csv_vector(master, file_url, file_name, document_id):
+    search_client = SearchClient(endpoint=settings.AZURE_SEARCH_ENDPOINT,
+                                 index_name="csvdata",
+                                 credential=settings.AZURE_COGNITIVE_SEARCH_API_KEY)
+
+    csv_reader = csv.reader(file_url)
+    batch_array = []
+    for row in csv_reader:
+        batch_array.append(
+            {
+                "page_name": str(row["ページ名称"]),
+                "description_tag": str(row["説明タグ"]),
+                "url": str(row["URL"]),
+            }
+        )
+        search_client.upload_documents(documents=batch_array)
+        print("Done!")
 
 
 def regenerate_vector(master, file_url, file_name, document_id):
@@ -80,11 +101,18 @@ class CustomDataFileAdmin(admin.ModelAdmin):
     list_filter = ["master"]
 
     def save_model(self, request, obj, form, change):
-        file_name = obj.file.name
-        super().save_model(request, obj, form, change)
 
-        embed_vector_thread = threading.Thread(target=regenerate_vector, name="generate_vector",
-                                               args=(obj.master, obj.file.url, file_name, obj.id), daemon=True)
+        file_name = obj.file.name
+        master = obj.master
+        super().save_model(request, obj, form, change)
+        if master.id != 3 and file_name.endswith(".csv"):
+            raise ValueError("The given email must be set")
+        elif master.id == 3 and not file_name.endswith(".csv"):
+            raise ValueError("The given email must be set")
+
+        embed_vector_thread = threading.Thread(
+            target=regenerate_csv_vector if master.id == 3 else regenerate_vector, name="generate_vector",
+            args=(master, obj.file.url, file_name, obj.id), daemon=True)
         embed_vector_thread.start()
 
 

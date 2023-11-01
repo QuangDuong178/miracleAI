@@ -26,7 +26,7 @@ def load_documents(file_url, file_name, document_id):
     return documents
 
 
-def regenerate_vector(bot, file_url, file_name, document_id):
+def regenerate_vector(file_url, file_name, document_id):
     embeddings = OpenAIEmbeddings(openai_api_base=settings.OPENAI_API_BASE,
                                   openai_api_version=settings.OPENAI_API_VERSION,
                                   openai_api_key=settings.OPENAI_API_KEY,
@@ -34,6 +34,7 @@ def regenerate_vector(bot, file_url, file_name, document_id):
                                   deployment=settings.OPENAI_EMBEDDING_DEPLOYMENT_NAME, chunk_size=1,
                                   show_progress_bar=True)
     embedding_function = embeddings.embed_query
+    bot = Bot.objects.get(id=1)
     fields = [
         SimpleField(
             name="id",
@@ -76,13 +77,9 @@ class CustomDataFileAdmin(admin.ModelAdmin):
         super().save_model(request, obj, form, change)
 
         embed_vector_thread = threading.Thread(target=regenerate_vector, name="generate_vector",
-                                               args=(obj.bot, obj.file.url, file_name, obj.id), daemon=True)
+                                               args=(obj.file.url, file_name, obj.id), daemon=True)
         embed_vector_thread.start()
 
 
-class BotAdmin(admin.ModelAdmin):
-    pass
-
-
 admin.site.register(CustomDataFile, CustomDataFileAdmin)
-admin.site.register(Bot, BotAdmin)
+

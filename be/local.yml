@@ -1,14 +1,14 @@
 version: '3'
 
 services:
-  miracle_api:
+  vietis_chatbot_api:
     build:
       context: .
       dockerfile: ./compose/local/Dockerfile
-    image: miracle_api
-    container_name: miracle_api
+    image: vietis_chatbot_api
+    container_name: vietis_chatbot_api
     depends_on:
-      - miracle_mysql
+      - vietis_chatbot_mysql
     volumes:
       - .:/src
     env_file:
@@ -17,24 +17,24 @@ services:
       - "8083:8000"
     command: python manage.py runserver 0.0.0.0:8000
     networks:
-      - miracle_backend
+      - vietis_chatbot_backend
 
-  miracle_mysql:
+  vietis_chatbot_mysql:
     image: mysql:8.0
-    container_name: miracle_mysql
+    container_name: vietis_chatbot_mysql
     command: "--default-authentication-plugin=mysql_native_password"
     env_file:
       - .env
     ports:
-      - "3307:3306"
+      - "3308:3306"
     volumes:
-      - miracle_mysql_data:/var/lib/mysql
+      - vietis_chatbot_mysql_data:/var/lib/mysql
     networks:
-      - miracle_backend
+      - vietis_chatbot_backend
 
 networks:
-  miracle_backend:
+  vietis_chatbot_backend:
 
 volumes:
-  miracle_mysql_data:
+  vietis_chatbot_mysql_data:
   redis_data:

@@ -64,12 +64,12 @@ class SimpleConversationChat:
         try:
 
             condense_template = """
-                Consider the following conversation and follow-up questions, and rephrase the follow-up questions as stand-alone questions.
-    
-                Chat history:
+                Hãy xem xét cuộc trò chuyện sau đây và các câu hỏi tiếp theo, đồng thời diễn đạt lại các câu hỏi tiếp theo dưới dạng câu hỏi độc lập:
+                
+                Lịch sử trò chuyện:
                 {chat_history}
-                Follow-up input：{question}
-                Independent question:
+                Câu hỏi tiếp theo：{question}
+                Câu hỏi độc lập:
                 """
 
             condense_question_prompt = PromptTemplate(
@@ -78,7 +78,7 @@ class SimpleConversationChat:
             )
 
             qa_prompt_message = bot.prompt_message if bot.prompt_message \
-                else "To answer the last question in polite Vietnamese, use the following context: If you don't have data in context or don't know the answer, don't try to come up with an answer, just say you don't know."
+                else "Để trả lời câu hỏi cuối cùng bằng tiếng Việt lịch sự, hãy sử dụng ngữ cảnh sau: Nếu bạn không có dữ liệu trong ngữ cảnh hoặc không biết câu trả lời, đừng cố đưa ra câu trả lời mà chỉ cần nói rằng bạn không biết."
 
             qa_template = qa_prompt_message + """
             {context}

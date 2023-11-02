@@ -80,6 +80,9 @@ class CustomDataFileAdmin(admin.ModelAdmin):
                                                args=(obj.file.url, file_name, obj.id), daemon=True)
         embed_vector_thread.start()
 
+class BotAdmin(admin.ModelAdmin):
+    pass
 
 admin.site.register(CustomDataFile, CustomDataFileAdmin)
+admin.site.register(Bot, BotAdmin)
 

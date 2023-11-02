@@ -15,7 +15,7 @@ $ docker-compose -f local.yml up -d
 ```
 - Interact container os
 ```bash
-$ docker exec -it miracle_api sh
+$ docker exec -it vietis_chatbot_api sh
 
 # If new model was created run makemigrations
 $ python manage.py makemigrations

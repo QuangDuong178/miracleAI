@@ -105,7 +105,7 @@ const handleSendMessage = async (message: string) => {
             'history_messages': conversationHistory,
             'masterId': id,
             'model': openai_model_version,
-          }, {headers: {responseType: 'stream'}})
+          })
       .then(response => {
         if (response.data) {
 

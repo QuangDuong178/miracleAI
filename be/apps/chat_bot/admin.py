@@ -13,7 +13,7 @@ from apps.utils.constants import CommonKey
 
 
 def load_documents(file_url, file_name, document_id):
-    loader = PyMuPDFLoader(file_url)
+    loader = PyMuPDFLoader(file_url[1:])
 
     pdf_documents = loader.load_and_split()
 

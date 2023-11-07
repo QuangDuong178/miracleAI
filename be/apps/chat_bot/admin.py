@@ -7,7 +7,7 @@ import os
 from urllib.parse import unquote
 from django.db.models.signals import pre_delete
 from django.dispatch import receiver
-from langchain.document_loaders import PyMuPDFLoader
+from langchain.document_loaders import UnstructuredFileLoader
 from langchain.embeddings import OpenAIEmbeddings
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain.vectorstores import AzureSearch
@@ -17,7 +17,7 @@ from apps.utils.constants import CommonKey
 
 
 def load_documents(file_url, file_name, document_id):
-    loader = PyMuPDFLoader(unquote(file_url[1:]))
+    loader = UnstructuredFileLoader(unquote(file_url[1:]))
 
     pdf_documents = loader.load_and_split()
 
@@ -26,7 +26,6 @@ def load_documents(file_url, file_name, document_id):
     for document in documents:
         document.metadata[CommonKey.SOURCE.value] = file_name
         document.metadata[CommonKey.DOCUMENT_ID.value] = document_id
-        document.metadata[CommonKey.PAGE.value] = int(document.metadata[CommonKey.PAGE.value]) + 1
     return documents
 
 

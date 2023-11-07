@@ -78,7 +78,9 @@ class SimpleConversationChat:
             )
 
             qa_prompt_message = bot.prompt_message if bot.prompt_message \
-                else "Để trả lời câu hỏi cuối cùng bằng tiếng Việt lịch sự, hãy sử dụng ngữ cảnh sau: Nếu bạn không có dữ liệu trong ngữ cảnh hoặc không biết câu trả lời, đừng cố đưa ra câu trả lời mà chỉ cần nói rằng bạn không biết."
+                else ("Để trả lời câu hỏi cuối cùng bằng tiếng Việt lịch sự, hãy sử dụng ngữ cảnh sau:"
+                      " Nếu bạn không có dữ liệu trong ngữ cảnh hoặc không biết câu trả lời,"
+                      " đừng cố đưa ra câu trả lời mà chỉ cần nói rằng bạn không biết và bảo người dùng hỏi lại theo ngữ cảnh khác .")
 
             qa_template = qa_prompt_message + """
             {context}

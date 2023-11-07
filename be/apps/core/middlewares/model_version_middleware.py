@@ -22,12 +22,6 @@ class ModelVersionMiddleware:
             except Exception:
                 pass
 
-        if version_get_request == OpenAIModelVersion.GPT_4.value or version_post_request == OpenAIModelVersion.GPT_4.value:
-            settings.OPENAI_API_BASE = env("OPENAI_API_BASE_V2")
-            settings.OPENAI_API_KEY = env("OPENAI_API_KEY_V2")
-            settings.OPENAI_CONVERSATION_DEPLOYMENT_NAME = env("OPENAI_CONVERSATION_DEPLOYMENT_NAME_V2")
-            settings.OPENAI_EMBEDDING_DEPLOYMENT_NAME = env("OPENAI_EMBEDDING_DEPLOYMENT_NAME_V2")
-
         response = self.get_response(request)
 
         return response

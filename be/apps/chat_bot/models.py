@@ -21,7 +21,7 @@ def pdf_directory_path(instance, filename):
 
 class CustomDataFile(TimeStampMixin):
     file = models.FileField(upload_to=pdf_directory_path,
-                            validators=[FileExtensionValidator(allowed_extensions=["pdf"])])
+                            validators=[FileExtensionValidator(allowed_extensions=["pdf","docx"])])
 
     class Meta:
         db_table = 'custom_data_file'

@@ -1,6 +1,9 @@
 from django.core.validators import FileExtensionValidator, URLValidator
 from django.db import models
 import environ
+from django.db.models.signals import pre_delete
+from django.dispatch import receiver
+
 from apps.core.db.models import TimeStampMixin
 env = environ.Env()
 
@@ -22,3 +25,4 @@ class CustomDataFile(TimeStampMixin):
 
     class Meta:
         db_table = 'custom_data_file'
+

@@ -3,6 +3,10 @@ import threading
 from azure.search.documents.indexes.models import SimpleField, SearchFieldDataType, SearchableField, SearchField
 from django.conf import settings
 from django.contrib import admin
+import os
+from urllib.parse import unquote
+from django.db.models.signals import pre_delete
+from django.dispatch import receiver
 from langchain.document_loaders import PyMuPDFLoader
 from langchain.embeddings import OpenAIEmbeddings
 from langchain.text_splitter import RecursiveCharacterTextSplitter
@@ -13,7 +17,7 @@ from apps.utils.constants import CommonKey
 
 
 def load_documents(file_url, file_name, document_id):
-    loader = PyMuPDFLoader(file_url[1:])
+    loader = PyMuPDFLoader(unquote(file_url[1:]))
 
     pdf_documents = loader.load_and_split()
 
@@ -82,6 +86,11 @@ class CustomDataFileAdmin(admin.ModelAdmin):
 
 class BotAdmin(admin.ModelAdmin):
     pass
+
+@receiver(pre_delete, sender=CustomDataFile)
+def handle_deleted_instance(sender, instance, **kwargs):
+    if os.path.exists(unquote(instance.file.url[1:])):
+        os.remove(unquote(instance.file.url[1:]))
 
 admin.site.register(CustomDataFile, CustomDataFileAdmin)
 admin.site.register(Bot, BotAdmin)

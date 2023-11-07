@@ -4,12 +4,12 @@ import MessageUser from "@/components/box_chat/MessageUser.vue";
 import {onMounted, onUpdated, ref, watch} from "vue";
 import {BOT_GUIDE, BOT_TYPE, SAMPLE_QUESTION, USER_TYPE} from "@/constant/MessageType";
 import axios from "axios";
-import {masterListMessages, messageDefault, questionSampleDefault} from "@/data/ConversationList";
+import {masterListMessages} from "@/data/ConversationList";
 import MessageLoading from "@/components/box_chat/MessageLoading.vue";
 import TextMessageV2 from "@/components/box_chat/TextMessage.vue";
 import MessageGuide from "@/components/box_chat/MessageGuide.vue";
 import {API_BASE_PATH} from "@/constant/api";
-import {MESSAGE_ROLE, RENDER_TIME} from "@/constant/constant";
+import {MESSAGE_ROLE} from "@/constant/constant";
 
 const props = defineProps<{
   master: object,
@@ -22,32 +22,9 @@ const elementList = ref(new Map([
 ]));
 
 const scrollHeight = ref(0);
-const messageGuideWaiting = ref(masterListMessages.map(master => master.id));
-const messageWaitingIdList = ref([])
+const messageWaitingIdList = ref([]);
 const openai_model_version = new URL(location.href).searchParams.get('model')
 const messageRendering = ref(false);
-
-watch(() => props.master, () => {
-  currentMaster.value = masterListMessages.find(master => master.id === props.master.id)
-  elementList.value.set(props.master.id, currentMaster.value.messages);
-  initMasterConversation(props.master.id);
-  const messagebox = document.getElementById("boxMessage")
-
-  if (messagebox) {
-    scrollHeight.value = messagebox.scrollHeight;
-  }
-});
-
-watch(() => props.resetConversation, () => {
-  if (!messageWaitingIdList.value.some(item => item === props.master.id) &&
-      !messageGuideWaiting.value.some(item => item === props.master.id)) {
-    currentMaster.value!.messages = [];
-    elementList.value.delete(props.master.id);
-    messageGuideWaiting.value.push(props.master.id)
-    initMasterConversation(props.master.id);
-  }
-
-});
 
 onUpdated(() => {
   const messagebox = document.getElementById("boxMessage")
@@ -56,37 +33,6 @@ onUpdated(() => {
     scrollHeight.value = messagebox.scrollHeight;
   }
 })
-
-const handleSuggestion =  (messageGuides: Array<object>, masterId: number) => {
-  const messageDefault = messageGuides.slice();
-  return new Promise((resolve, reject) => {
-    elementList.value.get(masterId).push(messageDefault[0])
-    setTimeout(() => {
-      elementList.value.get(masterId).push(messageDefault[1])
-    }, (RENDER_TIME * messageDefault[0].message.length));
-
-    setTimeout(() => {
-      elementList.value.get(masterId).push(messageDefault[2])
-
-    }, (RENDER_TIME * (messageDefault[0].message.length + messageDefault[1].message.length)));
-
-    setTimeout(() => {
-      messageGuideWaiting.value = messageGuideWaiting.value.filter(item => item !== masterId)
-      resolve();
-    }, (RENDER_TIME * (messageDefault[0].message.length + messageDefault[1].message.length + messageDefault[2].message.length)));
-  });
-}
-
-const initMasterConversation = async (masterId) => {
-  if (!elementList.value.has(masterId)) {
-    elementList.value.set(masterId, [])
-
-  }
-  if (elementList.value.get(masterId).length === 0) {
-    await handleSuggestion(messageDefault, masterId);
-    elementList.value.get(masterId).push(...questionSampleDefault)
-  }
-}
 
 const handleSendMessage = async (message: string) => {
   const id = props.master.id;
@@ -125,7 +71,7 @@ const handleSendMessage = async (message: string) => {
         console.log(error)
       })
       .finally(() => {
-        messageRendering.value = true
+        messageRendering.value = false
         messageWaitingIdList.value = messageWaitingIdList.value.filter(item => item !== id)
       })
 }
@@ -140,7 +86,6 @@ watch(scrollHeight, (value, oldValue) => {
 })
 
 onMounted(() => {
-  initMasterConversation(props.master.id)
   const header = document.getElementById("header");
   const boxMessage = document.getElementById("boxMessage");
   const clientHeight = document.documentElement.clientHeight;
@@ -180,8 +125,7 @@ const finishRender = () => {
     </div>
     <div id="text-message">
       <TextMessageV2 placeholder="" msg=""
-                     :messageWaiting="messageWaitingIdList.includes(props.master.id)
-                       || messageGuideWaiting.includes(props.master.id) || messageRendering"
+                     :messageWaiting="messageWaitingIdList.includes(props.master.id) || messageRendering"
                      @handleClickSend="handleSendMessage"/>
     </div>
   </div>
